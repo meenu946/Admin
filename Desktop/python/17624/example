@@ -1,0 +1,70 @@
+CREATE DATABASE serviceexpress;
+use serviceexpress;
+CREATE TABLE services (
+    sid INT PRIMARY KEY,
+    service_name VARCHAR(50) NOT NULL,
+    category VARCHAR(50),
+    provider VARCHAR(50),
+    price DECIMAL(10, 2),
+    description TEXT
+);
+INSERT INTO services (sid, service_name, category, provider, price, description)
+VALUES
+(1, 'Cleaning', 'Home Services', 'Cleaners Inc.', 50.00, 'Professional home cleaning services.'),
+(2, 'Plumbing', 'Home Services', 'Plumbers R Us', 80.00, 'Expert plumbing services for homes.'),
+(3, 'Electrical Repair', 'Home Services', 'Sparky Electric', 100.00, 'Electrical repair and maintenance services.');
+CREATE TABLE customers (
+    cid INT PRIMARY KEY,
+    cname VARCHAR(50) NOT NULL,
+    age INT,
+    addr VARCHAR(100),
+    phone VARCHAR(15)
+);
+INSERT INTO customers (cid, cname, age, addr, phone)
+VALUES
+(1, 'John Doe', 30, '123 Elm St', '123-456-7890'),
+(2, 'Jane Smith', 25, '456 Oak St', '987-654-3210'),
+(3, 'Alice Johnson', 35, '789 Pine St', '111-222-3333');
+CREATE TABLE orders (
+    oid INT PRIMARY KEY,
+    cid INT,
+    sid INT,
+    order_date DATE,
+    status VARCHAR(20),
+    FOREIGN KEY (cid) REFERENCES customers(cid),
+    FOREIGN KEY (sid) REFERENCES services(sid)
+);
+INSERT INTO orders (oid, cid, sid, order_date, status)
+VALUES
+(1, 1, 1, '2023-06-01', 'completed'),
+(2, 2, 2, '2023-06-02', 'pending'),
+(3, 3, 3, '2023-06-03', 'completed');
+CREATE TABLE payment (
+    pay_id INT PRIMARY KEY,
+    oid INT,
+    amount DECIMAL(10, 2),
+    mode VARCHAR(30),
+    status VARCHAR(30),
+    FOREIGN KEY (oid) REFERENCES orders(oid)
+);
+INSERT INTO payment (pay_id, oid, amount, mode, status)
+VALUES
+(1, 1, 50.00, 'card', 'completed'),
+(2, 2, 80.00, 'cash', 'completed'),
+(3, 3, 100.00, 'net banking', 'pending');
+-- Select all services provided by 'Plumbers R Us'
+SELECT * FROM services WHERE provider = 'Plumbers R Us';
+-- 2
+-- Select all customers younger than 30 years old
+SELECT * FROM customers WHERE age < 30;
+-- 2
+-- Select all orders with status 'completed' and their total amount greater than 75.00
+SELECT o.oid, o.cid, o.sid, o.order_date, o.status, p.amount 
+FROM orders o
+JOIN payment p ON o.oid = p.oid
+WHERE o.status = 'completed' AND p.amount > 75.00;
+-- 3
+-- Update the status of an order with oid = 2 to 'cancelled'
+UPDATE orders SET status = 'cancelled' WHERE oid = 2;
+--  Delete all services where the price is less than or equal to 50.00
+DELETE FROM services WHERE price <= 50.00;

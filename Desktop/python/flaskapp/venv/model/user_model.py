@@ -21,3 +21,10 @@ class user_model():
     def user_addone_model(self,data):
         self.cur.execute(f"INSERT INTO users(ID,name, email, phone, role, password) VALUES( '{data['ID']}', '{data['name']}', '{data['email']}', '{data['phone']}', '{data['role']}', '{data['password']}')")
         return "User created succesfully"
+
+    def user_update_model(self,data):
+        self.cur.execute(f"UPDATE users SET ID='{data['ID']}', name='{data['name']}', email='{data['email']}', phone='{data['phone']}', role='{data['role']}', password='{data['password']}' WHERE ID={data['ID']}")
+        if self.cur.rowcount>0:
+            return "User created succesfully"
+        else:
+            return "Nothing to update"
