@@ -1,82 +1,176 @@
 
-# # creating and accesing elements in a dictionary
+# # Accessing and Modifying Dictionaries
 # In[ ]:
 
-
-fruits = {
-    "apple": "red",
-    "banana": "yellow",
-    "cherry": "red",
-    "date": "brown"
+person = {
+    "name": "John Doe",
+    "age": 30,
+    "city": "New York",
+    "email": "john.doe@example.com"
 }
+print("Name:", person["name"])       
+print("Age:", person["age"])         
+print("City:", person["city"])      
+print("Email:", person["email"])   
+person["age"] = 32
+person["city"] = "San Francisco"
+print("\nModified Age:", person["age"])    
+print("Modified City:", person["city"])  
+person["phone"] = "123-456-7890"
+print("\nUpdated Dictionary:", person)     
+removed_email = person.pop("email")
+print("\nRemoved Email:", removed_email)  
+print("Updated Dictionary:", person)       
 
-print(fruits["apple"])    
-print(fruits["banana"])   
+print("\nIterating through keys and values:")
+for key, value in person.items():
+    print(f"{key}: {value}")
 
+if "phone" in person:
+    print("\nPhone number exists in dictionary.")
 
-# # adding and modifying elements in a dictionary
+person.clear()
+print("\nCleared Dictionary:", person)     
+
+del person
+
+# # Dictionary Methods in Product Inventory Management
 
 # In[3]:
 
+inventory = {
+    "1001": {"name": "Keyboard", "price": 29.99, "stock": 50},
+    "1002": {"name": "Mouse", "price": 14.99, "stock": 75},
+    "1003": {"name": "Monitor", "price": 199.99, "stock": 25},
+    "1004": {"name": "Headphones", "price": 49.99, "stock": 30}
+}
 
-student_grades = {}
+print("Product IDs:")
+print(list(inventory.keys()))   
+print("\nProduct Details:")
+print(list(inventory.values())) 
+print("\nProduct Inventory:")
+for product_id, details in inventory.items():
+    print(f"Product ID: {product_id}, Details: {details}")
 
-student_grades["Alice"] = 90
-student_grades["Bob"] = 85
+print("\nProduct Details for ID 1002:")
+print(inventory.get("1002"))   
+removed_product = inventory.pop("1003")
+print("\nRemoved Product Details:")
+print(removed_product)         
+print("Updated Inventory:")
+print(inventory)             
+inventory.clear()
+print("\nCleared Inventory:")
+print(inventory)           
+original_inventory = {
+    "1001": {"name": "Keyboard", "price": 29.99, "stock": 50},
+    "1002": {"name": "Mouse", "price": 14.99, "stock": 75},
+    "1003": {"name": "Monitor", "price": 199.99, "stock": 25},
+    "1004": {"name": "Headphones", "price": 49.99, "stock": 30}
+}
+copied_inventory = original_inventory.copy()
 
-student_grades["Alice"] = 95
+copied_inventory["1001"]["stock"] = 45
 
-print(student_grades) 
+print("\nOriginal Inventory:")
+print(original_inventory)      
+print("Copied Inventory:")
+print(copied_inventory)         
 
 
-# # removing elements from a dictionary
+# # Adding and Removing Key-Value Pairs in a Dictionary
 
 # In[4]:
 
+employees = {}
 
-cities = {
-    "New York": 8419000,
-    "Los Angeles": 3980000,
-    "Chicago": 2716000
-}
+employees["E101"] = {"name": "John Doe", "age": 30, "department": "HR"}
+employees["E102"] = {"name": "Jane Smith", "age": 25, "department": "Engineering"}
+employees["E103"] = {"name": "Michael Johnson", "age": 35, "department": "Marketing"}
 
-population = cities.pop("Chicago")
-print(population)  
-print(cities)      
+print("Initial Employee Dictionary:")
+print(employees)
 
-last_city = cities.popitem()
-print(last_city)   
-print(cities)      
+employees["E104"] = {"name": "Emily Brown", "age": 28, "department": "Sales"}
+employees["E105"] = {"name": "David Lee", "age": 32, "department": "Finance"}
 
+print("\nUpdated Employee Dictionary:")
+print(employees)
 
-# # iterating over a dictionary
+removed_employee = employees.pop("E103")
+print("\nRemoved Employee Details:")
+print(removed_employee)
+
+print("\nEmployee Dictionary after Removal:")
+print(employees)
+
+employees["E101"]["department"] = "Operations"
+
+print("\nEmployee Dictionary after Modification:")
+print(employees)
+
+employees.clear()
+
+print("\nCleared Employee Dictionary:")
+print(employees)
+
+# # Dictionary Comprehension for Student Grades
 # In[5]:
 
-countries = {
-    "USA": "Washington, D.C.",
-    "France": "Paris",
-    "Japan": "Tokyo"
+student_grades = {
+    "John": 85,
+    "Jane": 92,
+    "Doe": 78,
+    "Emily": 95,
+    "David": 88
 }
 
-for country in countries:
-    print(country)
+grade_categories = {name: 'Pass' if score >= 80 else 'Fail' for name, score in student_grades.items()}
 
-for capital in countries.values():
-    print(capital)
+print("Student Grades:")
+print(student_grades)
 
-for country, capital in countries.items():
-    print(f"The capital of {country} is {capital}")
+print("\nCategorized Grades:")
+print(grade_categories)
 
-
-
-# # dictionary comprehensions
+# # Nested Dictionaries for Company Departments and Employees
 
 # In[6]:
 
-squares = {x: x**2 for x in range(1, 6)}
-print(squares)  
+company = {
+    "HR": {
+        "employees": [
+            {"name": "John Doe", "age": 30, "position": "HR Manager"},
+            {"name": "Jane Smith", "age": 25, "position": "HR Assistant"}
+        ],
+        "head": "Michael Johnson"
+    },
+    "Engineering": {
+        "employees": [
+            {"name": "David Lee", "age": 32, "position": "Software Engineer"},
+            {"name": "Emily Brown", "age": 28, "position": "System Analyst"}
+        ],
+        "head": "Andrew Wilson"
+    },
+    "Marketing": {
+        "employees": [
+            {"name": "Mark Davis", "age": 35, "position": "Marketing Manager"},
+            {"name": "Emma Garcia", "age": 27, "position": "Marketing Specialist"}
+        ],
+        "head": "Sarah Martinez"
+    }
+}
 
-even_squares = {x: x**2 for x in range(1, 11) if x % 2 == 0}
-print(even_squares) 
+print("Company Departments and Employees:")
 
+for department, info in company.items():
+    print(f"\nDepartment: {department}")
+    print(f"Department Head: {info['head']}")
+    print("Employees:")
+    for employee in info["employees"]:
+        print(f"- Name: {employee['name']}, Age: {employee['age']}, Position: {employee['position']}")
 
+print("\nAccessing Specific Information:")
+print("HR Department Head:", company["HR"]["head"])
+print("Engineering Employees:", company["Engineering"]["employees"])
