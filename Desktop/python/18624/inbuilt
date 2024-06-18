@@ -1,0 +1,143 @@
+# String Functions
+-- A) CHAR_LENGTH(str)
+SELECT CHAR_LENGTH('Hello, World!');
+-- 13
+-- B) ASCII(str)
+SELECT ASCII('A'); -- 65
+SELECT ASCII('abc'); -- 97
+
+-- C) CONCAT(str1, str2, ...)
+SELECT CONCAT('Hello', ' ', 'World');
+-- Hello World
+-- D) INSTR(str, substr)
+SELECT INSTR('Hello, World!', 'o'); -- 5
+SELECT INSTR('Hello, World!', 'x'); -- 0
+
+-- E) LCASE(str) or LOWER(str)
+SELECT LCASE('HELLO'); -- hello
+SELECT LOWER('SupPorT');  -- support
+
+-- F) UCASE(str) or UPPER(str)
+SELECT UCASE('hello'); -- HELLO
+SELECT UPPER('SupPorT'); -- SUPPORT
+
+-- G) SUBSTR(str, start, length)
+SELECT SUBSTR('Hello, World!', 8, 5); -- World
+SELECT SUBSTR('Hello, World!', 1, 5); -- Hello
+
+-- H) LPAD(str, len, padstr)
+SELECT LPAD('Hello', 10, '*'); -- *****Hello
+
+-- I) RPAD(str, len, padstr)
+SELECT RPAD('Hello', 10, '*'); -- Hello*****
+
+-- J) TRIM(str), RTRIM(str), LTRIM(str)
+SELECT TRIM('   Hello, World!   ');
+SELECT RTRIM('   Hello, World!   ');
+SELECT LTRIM('   Hello, World!   ');
+-- Hello, World!
+# Date and Time Functions
+-- A) CURRENT_DATE()
+SELECT CURRENT_DATE() AS today;
+-- Output: 2023-05-01 (if the current date is May 1, 2023)
+
+-- B) DATEDIFF(date1, date2)
+SELECT DATEDIFF('2023-05-10', '2023-05-01') AS day_difference;
+-- Output: 9
+
+-- C) DATE(expression)
+SELECT DATE('2023-05-01 12:34:56') AS result;
+-- Output: 2023-05-01
+
+-- D) CURRENT_TIME()
+SELECT CURRENT_TIME() AS now;
+-- Output: 15:30:45 (if the current time is 3:30:45 PM)
+
+-- E) LAST_DAY(date)
+SELECT LAST_DAY('2023-05-01') AS last_day_of_may;
+-- Output: 2023-05-31
+
+-- F) SYSDATE()
+SELECT SYSDATE() AS `Timestamp`;
+-- Output: 2023-05-01 15:45:23 (if the current date and time is May 1, 2023, 3:45:23 PM)
+
+-- G) ADDDATE(date, interval)
+SELECT ADDDATE('2023-05-01', INTERVAL 7 DAY) AS one_week_later;
+-- Output: 2023-05-08
+
+# Numeric Functions
+-- A) AVG(expression)
+SELECT AVG(price) AS avg_price
+FROM products;
+-- 456.000000
+-- B) COUNT(expression)
+SELECT COUNT(*) AS total_products
+FROM products;
+-- 5
+-- C) POW(base, exponent)
+SELECT POW(2, 3) AS result;
+-- Output: 8
+
+-- D) MIN(expression)
+SELECT MIN(price) AS min_price
+FROM products;
+-- 50.00
+-- E) MAX(expression)
+SELECT MAX(stock) AS max_stock, location
+FROM products
+GROUP BY location;
+
+-- F) ROUND(number, [decimals])
+SELECT ROUND(3.1416, 2) AS result; -- Output: 3.14
+SELECT ROUND(3.1416) AS result; -- Output: 3
+
+-- G) SQRT(number)
+SELECT SQRT(25) AS result; -- Output: 5
+
+-- H) FLOOR(number)
+SELECT FLOOR(3.8) AS result; -- Output: 3
+SELECT FLOOR(-3.8) AS result; -- Output: -4
+
+
+
+SELECT CONCAT('Hello', ', ', 'World') AS concatenated_string;
+-- Output: 'Hello, World'
+
+SELECT SUBSTRING('Hello, World!', 5, 6) AS extracted_substring;
+-- Output: ', Wor'
+
+SELECT LPAD('123', 5, '0') AS padded_left, RPAD('123', 5, '*') AS padded_right;
+-- Output: '00123', '123**'
+
+SELECT TRIM(' Hello, World! ') AS trimmed_string;
+-- Output: 'Hello, World!'
+
+SELECT DATEDIFF('2023-07-20', '2023-06-15') AS days_between_dates;
+-- Output: 35
+
+SELECT LAST_DAY('2023-06-15') AS last_day_of_month;
+-- Output: '2023-06-30'
+
+SELECT DATE_ADD(CURRENT_DATE(), INTERVAL 3 MONTH) AS date_after_3_months;
+-- Example Output: '2024-09-17'
+
+SELECT TIME('2023-06-15 14:30:45') AS extracted_time;
+-- Output: '14:30:45'
+
+SELECT SQRT(144) AS square_root;
+-- Output: 12
+
+SELECT ROUND(3.14159, 2) AS rounded_number;
+-- Output: 3.14
+
+SELECT category, MIN(price) AS min_price, MAX(price) AS max_price
+FROM products
+GROUP BY category;
+/*
+Electronics	800.00	1200.00
+Furniture	150.00	150.00
+Sportswear	80.00	80.00
+Kitchen Appliances	50.00	50.00
+*/
+SELECT POW(2, 5) AS power_of_two;
+-- Output: 32

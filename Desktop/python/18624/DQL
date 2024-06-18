@@ -1,0 +1,118 @@
+CREATE DATABASE ECommerceDB;
+USE ECommerceDB;
+
+CREATE TABLE products (
+    pid INT PRIMARY KEY,
+    pname VARCHAR(100) NOT NULL,
+    price DECIMAL(10, 2) NOT NULL,
+    category VARCHAR(50)
+);
+
+CREATE TABLE customers (
+    cid INT PRIMARY KEY,
+    cname VARCHAR(100) NOT NULL,
+    city VARCHAR(50),
+    age INT
+);
+
+CREATE TABLE orders (
+    oid INT PRIMARY KEY,
+    cid INT,
+    pid INT,
+    quantity INT,
+    order_date DATE,
+    FOREIGN KEY (cid) REFERENCES customers(cid),
+    FOREIGN KEY (pid) REFERENCES products(pid)
+);
+
+INSERT INTO products (pid, pname, price, category)
+VALUES
+(1, 'Laptop', 1200.00, 'Electronics'),
+(2, 'Smartphone', 800.00, 'Electronics'),
+(3, 'Desk Chair', 150.00, 'Furniture'),
+(4, 'Running Shoes', 80.00, 'Sportswear'),
+(5, 'Coffee Maker', 50.00, 'Kitchen Appliances');
+
+INSERT INTO customers (cid, cname, city, age)
+VALUES
+(1, 'John Doe', 'New York', 30),
+(2, 'Jane Smith', 'Los Angeles', 25),
+(3, 'Alice Johnson', 'Chicago', 35),
+(4, 'Bob Brown', 'San Francisco', 28),
+(5, 'Emily Davis', 'Miami', 40);
+
+INSERT INTO orders (oid, cid, pid, quantity, order_date)
+VALUES
+(1, 1, 1, 2, '2023-06-01'),
+(2, 2, 2, 1, '2023-06-02'),
+(3, 3, 1, 1, '2023-06-03'),
+(4, 4, 3, 4, '2023-06-04'),
+(5, 5, 4, 2, '2023-06-05'),
+(6, 1, 2, 3, '2023-06-06'),
+(7, 2, 3, 1, '2023-06-07'),
+(8, 3, 4, 2, '2023-06-08'),
+(9, 4, 5, 1, '2023-06-09'),
+(10, 5, 1, 2, '2023-06-10');
+
+SELECT * FROM customers WHERE city = 'New York';
+-- 1
+
+SELECT customers.cid, customers.cname, COUNT(orders.oid) AS order_count
+FROM orders
+JOIN customers ON orders.cid = customers.cid
+GROUP BY customers.cid, customers.cname;
+-- count of orders per customer 
+
+-- Total Amount Spent per Customer
+SELECT c.cid, c.cname, SUM(p.price * o.quantity) AS total_spent
+FROM customers c
+JOIN orders o ON c.cid = o.cid
+JOIN products p ON o.pid = p.pid
+GROUP BY c.cid;
+
+-- Average Order Quantity per Product Category
+SELECT p.category, AVG(o.quantity) AS avg_quantity
+FROM products p
+JOIN orders o ON p.pid = o.pid
+GROUP BY p.category;
+
+-- Customers with Total Orders More than 2
+SELECT customers.cid, customers.cname, COUNT(orders.oid) AS order_count
+FROM orders
+JOIN customers ON orders.cid = customers.cid
+GROUP BY customers.cid, customers.cname
+HAVING COUNT(orders.oid) > 2;
+
+-- Concatenated Order Details per Customer
+SELECT c.cid, c.cname, GROUP_CONCAT(CONCAT(p.pname, ' - Qty: ', o.quantity) ORDER BY o.order_date SEPARATOR ', ') AS order_details
+FROM customers c
+JOIN orders o ON c.cid = o.cid
+JOIN products p ON o.pid = p.pid
+GROUP BY c.cid;
+
+-- Products Ordered by Price Ascending
+SELECT * FROM products ORDER BY price ASC;
+
+-- Customers Ordered by Age Descending
+SELECT * FROM customers ORDER BY age DESC;
+
+-- Select distinct product categories
+SELECT DISTINCT category FROM products;
+
+-- Select all customers aged 30 or older
+SELECT * FROM customers WHERE age >= 30;
+
+-- Select products with names containing 'Chair'
+SELECT * FROM products WHERE pname LIKE '%Chair%';
+
+-- Create a query to display customer names and a custom label based on their age
+SELECT cname,
+    CASE 
+        WHEN age < 25 THEN 'Young'
+        WHEN age >= 25 AND age < 40 THEN 'Middle-aged'
+        ELSE 'Senior'
+    END AS age_group
+FROM customers;
+
+-- Select the first 5 orders
+SELECT * FROM orders LIMIT 5;
