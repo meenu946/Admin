@@ -1,0 +1,261 @@
+create database amazon;
+use amazon;
+create table products
+(
+	pid int(3) primary key,
+    pname varchar(50) not null,
+    price int(10) not null,
+    stock int(5),
+    location varchar(30) check(location in ('Mumbai','Delhi'))
+);
+
+create table customer
+(
+	cid int(3) primary key,
+    cname varchar(30) not null,
+    age int(3),
+    addr varchar(50)
+);
+
+create table orders
+(
+	oid int(3) primary key,
+    cid int(3),
+    pid int(3),
+    amt int(10) not null,
+    foreign key(cid) references customer(cid),
+    foreign key(pid) references products(pid)
+);
+
+create table payment
+(
+	pay_id int(3) primary key,
+    oid int(3),
+    amount int(10) not null,
+    mode varchar(30) check(mode in('upi','credit','debit')),
+    status varchar(30),
+    foreign key(oid) references orders(oid)
+);
+CREATE TABLE employee(
+eid INT(4) PRIMARY KEY,
+ename VARCHAR(40) NOT NULL,
+phone_no INT(10) NOT NULL,
+department VARCHAR(40) NOT NULL,
+manager_id INT(4)
+);
+
+insert into products values(1,'HP Laptop',50000,15,'Mumbai');
+insert into products values(2,'Realme Mobile',20000,30,'Delhi');
+insert into products values(3,'Boat earpods',3000,50,'Delhi');
+insert into products values(4,'Levono Laptop',40000,15,'Mumbai');
+insert into products values(5,'Charger',1000,0,'Mumbai');
+insert into products values(6, 'Mac Book', 78000, 6, 'Delhi');
+insert into products values(7, 'JBL speaker', 6000, 2, 'Delhi');
+
+insert into customer values(101,'Ravi',30,'fdslfjl');
+insert into customer values(102,'Rahul',25,'fdslfjl');
+insert into customer values(103,'Simran',32,'fdslfjl');
+insert into customer values(104,'Purvesh',28,'fdslfjl');
+insert into customer values(105,'Sanjana',22,'fdslfjl');
+
+insert into orders values(10001,102,3,2700);
+insert into orders values(10002,104,2,18000);
+insert into orders values(10003,105,5,900);
+insert into orders values(10004,101,1,46000);
+
+insert into payment values(1,10001,2700,'upi','completed');
+insert into payment values(2,10002,18000,'credit','completed');
+insert into payment values(3,10003,900,'debit','in process');
+
+INSERT INTO employee VALUES (401, "Rohan", 364832549, "Analysis", 404);
+INSERT INTO employee VALUES (402, "Rahul", 782654123, "Delivery", 406);
+INSERT INTO employee VALUES (403, "Shyam", 856471235, "Delivery", 402);
+INSERT INTO employee VALUES (404, "Neha", 724863287, "Sales", 402);
+INSERT INTO employee VALUES (405, "Sanjana", 125478954, "HR", 404);
+INSERT INTO employee VALUES (406, "Sanjay", 956478535, "Tech",null);
+
+SELECT * FROM products;
+/*
+1	HP Laptop	50000	15	Mumbai
+2	Realme Mobile	20000	30	Delhi
+3	Boat earpods	3000	50	Delhi
+4	Levono Laptop	40000	15	Mumbai
+5	Charger	1000	0	Mumbai
+6	Mac Book	78000	6	Delhi
+7	JBL speaker	6000	2	Delhi
+*/
+
+SELECT * FROM customer;
+/*
+101	Ravi	30	fdslfjl
+102	Rahul	25	fdslfjl
+103	Simran	32	fdslfjl
+104	Purvesh	28	fdslfjl
+105	Sanjana	22	fdslfjl
+*/
+
+SELECT * FROM orders;
+/*
+10001	102	3	2700
+10002	104	2	18000
+10003	105	5	900
+10004	101	1	46000
+*/
+
+SELECT * FROM payment;
+/*
+1	10001	2700	upi	completed
+2	10002	18000	credit	completed
+3	10003	900	debit	in process
+*/
+
+SELECT * FROM employee;
+/*
+401	Rohan	364832549	Analysis	404
+402	Rahul	782654123	Delivery	406
+403	Shyam	856471235	Delivery	402
+404	Neha	724863287	Sales	402
+405	Sanjana	125478954	HR	404
+406	Sanjay	956478535	Tech	
+*/
+#1.Inner Join 
+SELECT customer.cid, cname, orders.oid FROM orders 
+INNER JOIN customer ON orders.cid = customer.cid;
+/*
+101	Ravi	10004
+102	Rahul	10001
+104	Purvesh	10002
+105	Sanjana	10003
+*/
+
+SELECT customer.cid, cname, products.pid, pname, oid FROM orders
+INNER JOIN products ON orders.pid = products.pid
+INNER JOIN customer ON orders.cid = customer.cid;
+/*
+102	Rahul	3	Boat earpods	10001
+104	Purvesh	2	Realme Mobile	10002
+105	Sanjana	5	Charger	10003
+101	Ravi	1	HP Laptop	10004
+*/
+
+#2. Left Outer Join
+SELECT products.pid, pname, amt, orders.oid FROM products
+LEFT JOIN orders ON orders.pid = products.pid;
+/*
+1	HP Laptop	46000	10004
+2	Realme Mobile	18000	10002
+3	Boat earpods	2700	10001
+4	Levono Laptop		
+5	Charger	900	10003
+6	Mac Book		
+7	JBL speaker		
+*/
+
+#3. Right Join
+SELECT * FROM payment 
+RIGHT JOIN orders ON orders.oid = payment.oid;
+/*
+1	10001	2700	upi	completed	10001	102	3	2700
+2	10002	18000	credit	completed	10002	104	2	18000
+3	10003	900	debit	in process	10003	105	5	900
+					10004	101	1	46000
+*/
+
+#4.Full Join
+SELECT orders.oid, products.pid, pname, amt, price, stock, location FROM orders
+LEFT JOIN products ON orders.pid = products.pid
+UNION
+SELECT orders.oid, products.pid, pname, amt, price, stock, location FROM orders
+RIGHT JOIN products ON orders.pid = products.pid;
+/*
+10001	3	Boat earpods	2700	3000	50	Delhi
+10002	2	Realme Mobile	18000	20000	30	Delhi
+10003	5	Charger	900	1000	0	Mumbai
+10004	1	HP Laptop	46000	50000	15	Mumbai
+	4	Levono Laptop		40000	15	Mumbai
+	6	Mac Book		78000	6	Delhi
+	7	JBL speaker		6000	2	Delhi
+*/
+
+#5.Self Join
+SELECT e1.ename AS Employee, e2.ename AS Manager FROM employee e1
+INNER JOIN employee e2 ON e1.manager_id = e2.eid;
+/*
+Rohan	Neha
+Rahul	Sanjay
+Shyam	Rahul
+Neha	Rahul
+Sanjana	Neha
+*/
+
+#6.Cross Join
+SELECT customer.cid, cname, orders.oid, amt FROM customer
+CROSS JOIN orders ON customer.cid = orders.cid
+WHERE amt > 3000;
+/*
+104	Purvesh	10002	18000
+101	Ravi	10004	46000
+*/
+
+#q1. Display details of all orders which were delivered from "Mumbai"
+
+SELECT * FROM orders 
+LEFT JOIN products ON orders.pid = products.pid
+WHERE location = "Mumbai";
+/*
+10004	101	1	46000	1	HP Laptop	50000	15	Mumbai
+10003	105	5	900	5	Charger	1000	0	Mumbai
+*/
+
+#q2. Display details of all orders whose payment was made through "UPI"
+
+SELECT * FROM orders
+RIGHT JOIN payment ON orders.oid = payment.oid
+WHERE mode = "UPI";
+/*
+10001	102	3	2700	1	10001	2700	upi	completed
+*/
+
+#q3. Dispaly oid, amt, cname, payment mode of orders which were made by people below 30 years
+
+SELECT orders.oid, cname, amt, mode FROM orders
+INNER JOIN payment ON orders.oid = payment.oid
+INNER JOIN customer ON orders.cid = customer.cid
+WHERE age < 30;
+/*
+10001	Rahul	2700	upi
+10002	Purvesh	18000	credit
+10003	Sanjana	900	debit
+*/
+#q4. Dispaly oid, amt, cname, paymentmode of orders which were made by people below 30 years and payment was made through "Credit"
+
+SELECT orders.oid, cname, amt, mode FROM orders
+INNER JOIN payment ON orders.oid = payment.oid
+INNER JOIN customer ON orders.cid = customer.cid
+WHERE age < 30 AND mode = "Credit";
+/*
+10002	Purvesh	18000	credit
+*/
+
+#q5. Display oid, amount, cname, pname, location of the orders whose payment is still pending or in process
+
+SELECT orders.oid, cname, pname, amount, status, location FROM orders
+CROSS JOIN products ON orders.pid = products.pid
+CROSS JOIN customer ON orders.cid = customer.cid
+CROSS JOIN payment ON orders.oid = payment.oid
+WHERE status IN ("in process", "pending");
+/*
+10003	Sanjana	Charger	900	in process	Mumbai
+*/
+
+#q6. We have order table, want to also display details of product ordered and details of customer who placed the order
+
+SELECT orders.cid, cname, pname FROM orders
+INNER JOIN customer ON orders.cid = customer.cid
+INNER JOIN products ON orders.pid = products.pid;
+/*
+102	Rahul	Boat earpods
+104	Purvesh	Realme Mobile
+105	Sanjana	Charger
+101	Ravi	HP Laptop
+*/

@@ -1,0 +1,134 @@
+CREATE DATABASE library_management;
+USE library_management;
+
+CREATE TABLE Authors (
+    author_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE Books (
+    book_id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    author_id INT,
+    published_year INT,
+    FOREIGN KEY (author_id) REFERENCES Authors(author_id)
+);
+
+CREATE TABLE Members (
+    member_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL
+);
+
+CREATE TABLE BorrowingRecords (
+    record_id INT AUTO_INCREMENT PRIMARY KEY,
+    book_id INT,
+    member_id INT,
+    borrow_date DATE,
+    return_date DATE,
+    FOREIGN KEY (book_id) REFERENCES Books(book_id),
+    FOREIGN KEY (member_id) REFERENCES Members(member_id)
+);
+
+INSERT INTO Authors (name) VALUES
+('J.K. Rowling'),
+('George R.R. Martin'),
+('J.R.R. Tolkien');
+
+INSERT INTO Books (title, author_id, published_year) VALUES
+('Harry Potter and the Philosopher\'s Stone', 1, 1997),
+('A Game of Thrones', 2, 1996),
+('The Hobbit', 3, 1937);
+
+INSERT INTO Members (name, email) VALUES
+('Alice Johnson', 'alice@example.com'),
+('Bob Smith', 'bob@example.com'),
+('Charlie Brown', 'charlie@example.com');
+
+INSERT INTO BorrowingRecords (book_id, member_id, borrow_date, return_date) VALUES
+(1, 1, '2023-06-01', '2023-06-15'),
+(2, 2, '2023-06-05', '2023-06-20'),
+(3, 3, '2023-06-10', '2023-06-25');
+
+-- update anamoly
+UPDATE Authors
+SET name = 'J.K. Rowling'
+WHERE author_id = 1;
+
+-- delete anamoly
+DELETE FROM BorrowingRecords
+WHERE book_id = 1;
+
+DELETE FROM Books
+WHERE book_id = 1;
+
+-- insert anamoly
+INSERT INTO Books (title, author_id, published_year) VALUES
+('Harry Potter and the Chamber of Secrets', 1, 1998);
+
+-- add primary key
+ALTER TABLE Authors ADD PRIMARY KEY (author_id);
+
+-- delteing primary key
+ALTER TABLE Authors DROP PRIMARY KEY;
+
+-- create foreign key
+ALTER TABLE Books
+ADD CONSTRAINT fk_author
+FOREIGN KEY (author_id) REFERENCES Authors(author_id);
+
+-- removing a foreign key
+ALTER TABLE Books
+DROP FOREIGN KEY fk_author;
+
+-- 1nf
+CREATE TABLE Books (
+    book_id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    author VARCHAR(100),
+    published_year INT
+);
+
+INSERT INTO Books (book_id, title, author, published_year) VALUES
+(1, 'Harry Potter', 'J.K. Rowling', 1997),
+(2, 'Harry Potter', 'Others', 1997),
+(3, 'A Game of Thrones', 'George R.R. Martin', 1996),
+(4, 'The Hobbit', 'J.R.R. Tolkien', 1937);
+
+-- 2nf
+CREATE TABLE Authors (
+    author_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL
+);
+
+INSERT INTO Authors (author_id, name) VALUES
+(1, 'J.K. Rowling'),
+(2, 'George R.R. Martin'),
+(3, 'J.R.R. Tolkien'),
+(4, 'Others');
+
+-- 3nf
+CREATE TABLE Publishers (
+    publisher_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL
+);
+
+ALTER TABLE Books ADD publisher_id INT;
+
+-- Assuming each author has a publisher
+UPDATE Books SET publisher_id = 1 WHERE author_id = 1;
+UPDATE Books SET publisher_id = 2 WHERE author_id = 2;
+UPDATE Books SET publisher_id = 3 WHERE author_id = 3;
+UPDATE Books SET publisher_id = 4 WHERE author_id = 4;
+
+ALTER TABLE Books ADD FOREIGN KEY (publisher_id) REFERENCES Publishers(publisher_id);
+
+-- bcnf
+-- Example for BCNF: Let's assume a table where `member_id` determines `email` and vice versa.
+CREATE TABLE Members (
+    member_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL
+);
+
+-- Both member_id and email can serve as candidate keys
