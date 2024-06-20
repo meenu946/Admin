@@ -1,0 +1,247 @@
+CREATE DATABASE ecommerce;
+USE ecommerce;
+
+CREATE TABLE Users (
+    user_id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE Products (
+    product_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    price DECIMAL(10, 2) NOT NULL,
+    stock INT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE Orders (
+    order_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    order_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(20) DEFAULT 'Pending',
+    FOREIGN KEY (user_id) REFERENCES Users(user_id)
+);
+
+-- OrderItems Table
+CREATE TABLE OrderItems (
+    order_item_id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT,
+    product_id INT,
+    quantity INT,
+    price DECIMAL(10, 2),
+    FOREIGN KEY (order_id) REFERENCES Orders(order_id),
+    FOREIGN KEY (product_id) REFERENCES Products(product_id)
+);
+
+CREATE TABLE Reviews (
+    review_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    product_id INT,
+    rating INT CHECK (rating BETWEEN 1 AND 5),
+    comment TEXT,
+    review_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES Users(user_id),
+    FOREIGN KEY (product_id) REFERENCES Products(product_id)
+);
+
+CREATE TABLE Payments (
+    payment_id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT,
+    amount DECIMAL(10, 2),
+    payment_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    payment_method VARCHAR(50),
+    status VARCHAR(20) DEFAULT 'Completed',
+    FOREIGN KEY (order_id) REFERENCES Orders(order_id)
+);
+
+INSERT INTO Users (username, email, password) VALUES
+('johndoe', 'john@example.com', 'password1'),
+('janedoe', 'jane@example.com', 'password2'),
+('rachel', 'reachel@example.com', 'password3'),
+('chandler', 'chandler@example.com', 'password4'),
+('joey', 'joey@example.com', 'password5'),
+('phoebe', 'phoebe@example.com', 'password6');
+
+INSERT INTO Products (name, description, price, stock) VALUES
+('Laptop', 'A high performance laptop', 1200.00, 50),
+('Smartphone', 'A latest model smartphone', 800.00, 100),
+('Headphones', 'A high performance Headphones', 200.00, 50),
+('Charger', 'A latest model charger', 100.00, 100),
+('Tablet', 'A high performance table', 1000.00, 50),
+('Smartwatch', 'A latest model smartwatch', 800.00, 100);
+
+INSERT INTO Orders (user_id, status) VALUES
+(1, 'Pending'),
+(2, 'Completed'),
+(3, 'Pending'),
+(4, 'Completed'),
+(5, 'Pending'),
+(6, 'Completed');
+
+INSERT INTO OrderItems (order_id, product_id, quantity, price) VALUES
+(1, 1, 1, 1200.00),
+(2, 2, 2, 1600.00),
+(3, 3, 3, 600.00),
+(4, 4, 4, 400.00),
+(5, 5, 5, 5000.00),
+(6, 6, 6, 48000.00);
+
+INSERT INTO Reviews (user_id, product_id, rating, comment) VALUES
+(1, 1, 5, 'Excellent product!'),
+(2, 2, 4, 'Very good but a bit expensive.'),
+(3, 3, 5, 'Excellent product!'),
+(4, 4, 4, 'Very good but a bit expensive.'),
+(5, 5, 5, 'Excellent product!'),
+(6, 6, 4, 'Very good but a bit expensive.');
+
+INSERT INTO Payments (order_id, amount, payment_method) VALUES
+(1, 1200.00, 'Credit Card'),
+(2, 1600.00, 'PayPal'),
+(3, 600.00, 'Credit Card'),
+(4, 400.00, 'PayPal'),
+(5, 5000.00, 'Credit Card'),
+(6, 48000.00, 'PayPal');
+
+-- Subqueries
+-- Single-row Subquery
+SELECT * FROM Products
+WHERE price = (SELECT MAX(price) FROM Products);
+/*
+1	Laptop	A high performance laptop	1200.00	50	2024-06-20 22:11:32
+*/
+
+-- Multi-row Subquery
+SELECT username FROM Users
+WHERE user_id IN (SELECT user_id FROM Reviews WHERE rating = 5);
+/*
+johndoe
+rachel
+joey
+*/
+
+-- Correlated Subquery
+SELECT username FROM Users u
+WHERE EXISTS (SELECT 1 FROM Orders o WHERE o.user_id = u.user_id AND 
+              (SELECT COUNT(*) FROM OrderItems oi WHERE oi.order_id = o.order_id) > 1);
+/*
+
+*/
+
+-- Joins
+-- Joins with Subqueries
+SELECT u.username, (SELECT SUM(p.amount) FROM Payments p JOIN Orders o ON p.order_id = o.order_id WHERE o.user_id = u.user_id) AS total_spent
+FROM Users u;
+/*
+johndoe	1200.00
+janedoe	1600.00
+rachel	600.00
+chandler	400.00
+joey	5000.00
+phoebe	48000.00
+*/
+
+-- Joins with Aggregate Functions
+SELECT u.username, COUNT(o.order_id) AS total_orders, SUM(p.amount) AS total_spent
+FROM Users u
+JOIN Orders o ON u.user_id = o.user_id
+JOIN Payments p ON o.order_id = p.order_id
+GROUP BY u.username;
+/*
+johndoe	1	1200.00
+janedoe	1	1600.00
+rachel	1	600.00
+chandler	1	400.00
+joey	1	5000.00
+phoebe	1	48000.00
+*/
+
+-- Joins with Date and Time Functions
+SELECT o.order_id, u.username, o.order_date
+FROM Orders o
+JOIN Users u ON o.user_id = u.user_id
+WHERE o.order_date > (NOW() - INTERVAL 30 DAY);
+/*
+1	johndoe	2024-06-20 22:11:32
+2	janedoe	2024-06-20 22:11:32
+3	rachel	2024-06-20 22:11:32
+4	chandler	2024-06-20 22:11:32
+5	joey	2024-06-20 22:11:32
+6	phoebe	2024-06-20 22:11:32
+*/
+
+-- Analytical Functions/Advanced Functions
+-- Rank
+SELECT product_id, name, price, RANK() OVER (ORDER BY price DESC) AS price_rank
+FROM Products;
+/*
+1	Laptop	1200.00	1
+5	Tablet	1000.00	2
+2	Smartphone	800.00	3
+6	Smartwatch	800.00	3
+3	Headphones	200.00	5
+4	Charger	100.00	6
+*/
+
+-- Dense Rank
+SELECT product_id, name, price, DENSE_RANK() OVER (ORDER BY price DESC) AS price_dense_rank
+FROM Products;
+/*
+1	Laptop	1200.00	1
+5	Tablet	1000.00	2
+2	Smartphone	800.00	3
+6	Smartwatch	800.00	3
+3	Headphones	200.00	4
+4	Charger	100.00	5
+*/
+
+-- Row Number
+SELECT product_id, name, created_at, ROW_NUMBER() OVER (ORDER BY created_at) AS row_num
+FROM Products;
+/*
+1	Laptop	2024-06-20 22:11:32	1
+2	Smartphone	2024-06-20 22:11:32	2
+3	Headphones	2024-06-20 22:11:32	3
+4	Charger	2024-06-20 22:11:32	4
+5	Tablet	2024-06-20 22:11:32	5
+6	Smartwatch	2024-06-20 22:11:32	6
+*/
+
+-- CUME_DIST
+SELECT product_id, name, price, CUME_DIST() OVER (ORDER BY price) AS cume_dist 
+FROM Products;
+/*
+4	Charger	100.00	0.1667
+3	Headphones	200.00	0.3333
+2	Smartphone	800.00	0.6667
+6	Smartwatch	800.00	0.6667
+5	Tablet	1000.00	0.8333
+1	Laptop	1200.00	1.0000
+*/
+
+-- LAG
+SELECT product_id, name, price, LAG(price, 1) OVER (ORDER BY product_id) AS prev_price
+FROM Products;
+/*
+1	Laptop	1200.00	
+2	Smartphone	800.00	1200.00
+3	Headphones	200.00	800.00
+4	Charger	100.00	200.00
+5	Tablet	1000.00	100.00
+6	Smartwatch	800.00	1000.00
+*/
+
+-- LEAD
+SELECT product_id, name, price, LEAD(price, 1) OVER (ORDER BY product_id) AS next_price
+FROM Products;
+/*
+1	Laptop	1200.00	800.00
+2	Smartphone	800.00	200.00
+3	Headphones	200.00	100.00
+4	Charger	100.00	1000.00
+5	Tablet	1000.00	800.00
+6	Smartwatch	800.00	
+*/
