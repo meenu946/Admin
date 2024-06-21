@@ -1,0 +1,195 @@
+CREATE DATABASE LibraryManagement;
+USE LibraryManagement;
+CREATE TABLE Authors (
+    author_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    birthdate DATE,
+    nationality VARCHAR(50)
+);
+
+CREATE TABLE Books (
+    book_id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(100) NOT NULL,
+    author_id INT,
+    genre VARCHAR(50),
+    published_date DATE,
+    price DECIMAL(10, 2),
+    stock INT,
+    FOREIGN KEY (author_id) REFERENCES Authors(author_id)
+);
+
+CREATE TABLE Members (
+    member_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    join_date DATE,
+    membership_type VARCHAR(50)
+);
+
+CREATE TABLE Borrow (
+    borrow_id INT AUTO_INCREMENT PRIMARY KEY,
+    member_id INT,
+    book_id INT,
+    borrow_date DATE,
+    return_date DATE,
+    FOREIGN KEY (member_id) REFERENCES Members(member_id),
+    FOREIGN KEY (book_id) REFERENCES Books(book_id)
+);
+
+INSERT INTO Authors (name, birthdate, nationality) VALUES
+('J.K. Rowling', '1965-07-31', 'British'),
+('George R.R. Martin', '1948-09-20', 'American'),
+('J.R.R. Tolkien', '1892-01-03', 'British');
+
+INSERT INTO Books (title, author_id, genre, published_date, price, stock) VALUES
+('Harry Potter and the Philosopher\'s Stone', 1, 'Fantasy', '1997-06-26', 20.00, 100),
+('A Game of Thrones', 2, 'Fantasy', '1996-08-06', 25.00, 50),
+('The Hobbit', 3, 'Fantasy', '1937-09-21', 15.00, 70);
+
+INSERT INTO Members (name, email, join_date, membership_type) VALUES
+('Alice Johnson', 'alice@example.com', '2023-01-15', 'Standard'),
+('Bob Smith', 'bob@example.com', '2022-11-22', 'Premium'),
+('Carol White', 'carol@example.com', '2023-05-03', 'Standard');
+
+INSERT INTO Borrow (member_id, book_id, borrow_date, return_date) VALUES
+(1, 1, '2023-05-10', '2023-05-20'),
+(2, 2, '2023-05-15', '2023-05-25'),
+(3, 3, '2023-05-20', '2023-06-01');
+
+-- delimeter command
+DELIMITER //
+-- deterministic function
+CREATE FUNCTION AverageBookPrice() RETURNS DECIMAL(10, 2) DETERMINISTIC
+BEGIN
+    DECLARE avg_price DECIMAL(10, 2);
+    SELECT AVG(price) INTO avg_price FROM Books;
+    RETURN avg_price;
+END//
+-- execute
+SELECT AverageBookPrice() AS avg_price//
+-- 20.00
+-- drop
+DROP FUNCTION AverageBookPrice//
+
+-- Stored Procedure with IN Parameter
+-- create
+DELIMITER //
+CREATE PROCEDURE GetBooksByGenre(IN genre_name VARCHAR(50))
+BEGIN
+    SELECT * FROM Books WHERE genre = genre_name;
+END//
+-- execute
+CALL GetBooksByGenre('Fantasy')//
+/*
+1	Harry Potter and the Philosopher's Stone	1	Fantasy	1997-06-26	20.00	100
+2	A Game of Thrones	2	Fantasy	1996-08-06	25.00	50
+3	The Hobbit	3	Fantasy	1937-09-21	15.00	70
+*/
+-- drop
+DROP PROCEDURE GetBooksByGenre//
+
+-- Stored Procedure with OUT Parameter
+-- create 
+DELIMITER //
+CREATE PROCEDURE GetTotalStockByAuthor(IN author_id INT, OUT total_stock INT)
+BEGIN
+    SELECT SUM(stock) INTO total_stock FROM Books WHERE author_id = author_id;
+END//
+-- execute
+CALL GetTotalStockByAuthor(1, @total_stock)//
+SELECT @total_stock AS total_stock//
+-- 220
+-- drop
+DROP PROCEDURE GetTotalStockByAuthor//
+
+-- Stored Procedure Using a Cursor
+DELIMITER //
+
+CREATE PROCEDURE ListMembersAndBooks()
+BEGIN
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE member_name VARCHAR(100);
+    DECLARE book_title VARCHAR(100);
+    DECLARE cur CURSOR FOR
+        SELECT m.name, b.title FROM Members m
+        JOIN Borrow br ON m.member_id = br.member_id
+        JOIN Books b ON br.book_id = b.book_id;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+    
+    OPEN cur;
+    read_loop: LOOP
+        FETCH cur INTO member_name, book_title;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+        SELECT member_name, book_title;
+    END LOOP;
+    CLOSE cur;
+END//
+
+DELIMITER ;
+-- execute
+CALL ListMembersAndBooks();
+-- Carol White	The Hobbit
+
+-- user defined cursor
+DELIMITER //
+
+CREATE PROCEDURE ListMembersAndBooks()
+BEGIN
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE member_name VARCHAR(100);
+    DECLARE book_title VARCHAR(100);
+    DECLARE cur CURSOR FOR
+        SELECT m.name, b.title 
+        FROM Members m
+        JOIN Borrow br ON m.member_id = br.member_id
+        JOIN Books b ON br.book_id = b.book_id;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+    
+    OPEN cur;
+    read_loop: LOOP
+        FETCH cur INTO member_name, book_title;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+        SELECT member_name, book_title;
+    END LOOP;
+    CLOSE cur;
+END//
+
+DELIMITER ;
+-- execute
+CALL ListMembersAndBooks();
+-- Carol White	The Hobbit
+
+-- predefined cursor
+-- Enable the use of SQL_CALC_FOUND_ROWS
+SELECT SQL_CALC_FOUND_ROWS * FROM Books WHERE price > 15;
+/*
+1	Harry Potter and the Philosopher's Stone	1	Fantasy	1997-06-26	20.00	100
+2	A Game of Thrones	2	Fantasy	1996-08-06	25.00	50
+						
+*/
+-- Get the number of rows that would have been returned without the LIMIT clause
+SELECT FOUND_ROWS() AS total_rows;
+-- 2
+
+-- Procedure Using Predefined Cursor Concept
+DELIMITER //
+CREATE PROCEDURE CalculateTotalPriceForGenre(IN genre_name VARCHAR(50))
+BEGIN
+    DECLARE total_price DECIMAL(10, 2) DEFAULT 0.00;
+
+    SELECT SUM(price) INTO total_price
+    FROM Books
+    WHERE genre = genre_name;
+
+    SELECT CONCAT('Total price of all ', genre_name, ' books: ', CAST(total_price AS CHAR)) AS result;
+END//
+-- excute
+CALL CalculateTotalPriceForGenre('Fantasy')//
+-- Total price of all Fantasy books: 120.00
+-- reset
+DELIMITER ;
+
