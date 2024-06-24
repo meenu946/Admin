@@ -28,3 +28,10 @@ class user_model():
             return "User created succesfully"
         else:
             return "Nothing to update"
+
+    def user_delete_model(self,ID):
+        self.cur.execute(f"DELETE FROM users WHERE ID={ID}")
+        if self.cur.rowcount>0:
+            return "User Deleted succesfully"
+        else:
+            return "Nothing to Delete"
