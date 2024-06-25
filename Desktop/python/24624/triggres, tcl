@@ -1,0 +1,218 @@
+CREATE DATABASE OnlineMarketplace;
+USE OnlineMarketplace;
+
+CREATE TABLE Users (
+    user_id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE Products (
+    product_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    price DECIMAL(10, 2) NOT NULL,
+    stock INT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE Orders (
+    order_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    order_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(20) DEFAULT 'Pending',
+    FOREIGN KEY (user_id) REFERENCES Users(user_id)
+);
+
+CREATE TABLE OrderItems (
+    order_item_id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT,
+    product_id INT,
+    quantity INT,
+    price DECIMAL(10, 2),
+    FOREIGN KEY (order_id) REFERENCES Orders(order_id),
+    FOREIGN KEY (product_id) REFERENCES Products(product_id)
+);
+
+CREATE TABLE Reviews (
+    review_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    product_id INT,
+    rating INT CHECK (rating BETWEEN 1 AND 5),
+    comment TEXT,
+    review_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES Users(user_id),
+    FOREIGN KEY (product_id) REFERENCES Products(product_id)
+);
+INSERT INTO Users (username, email, password) VALUES
+('john_doe', 'john@example.com', 'password1'),
+('jane_smith', 'jane@example.com', 'password2'),
+('mike_jones', 'mike@example.com', 'password3'),
+('susan_lee', 'susan@example.com', 'password4'),
+('linda_clark', 'linda@example.com', 'password5');
+
+INSERT INTO Products (name, description, price, stock) VALUES
+('Laptop', 'High performance laptop', 1500.00, 10),
+('Smartphone', 'Latest model smartphone', 800.00, 20),
+('Headphones', 'Noise-cancelling headphones', 200.00, 50),
+('Camera', 'Digital SLR camera', 1200.00, 15),
+('Smartwatch', 'Waterproof smartwatch', 300.00, 30);
+
+INSERT INTO Orders (user_id, status) VALUES
+(1, 'Pending'),
+(2, 'Completed'),
+(3, 'Pending'),
+(4, 'Completed'),
+(5, 'Pending');
+
+INSERT INTO OrderItems (order_id, product_id, quantity, price) VALUES
+(1, 1, 1, 1500.00),
+(2, 2, 2, 1600.00),
+(3, 3, 3, 600.00),
+(4, 4, 1, 1200.00),
+(5, 5, 5, 300.00);
+
+INSERT INTO Reviews (user_id, product_id, rating, comment) VALUES
+(1, 1, 5, 'Excellent product!'),
+(2, 2, 4, 'Good value for money.'),
+(3, 3, 3, 'Average quality.'),
+(4, 4, 5, 'Outstanding performance!'),
+(5, 5, 4, 'Very useful.');
+
+-- TCL commands 
+-- Start a transaction
+START TRANSACTION;
+
+-- Insert a new product
+INSERT INTO Products (name, description, price, stock) VALUES
+('Tablet', 'Android tablet', 400.00, 25);
+
+-- Save the state at this point
+SAVEPOINT before_update;
+
+-- Update stock for a product
+UPDATE Products SET stock = 20 WHERE product_id = 1;
+
+-- Rollback to savepoint
+ROLLBACK TO before_update;
+
+-- Commit the transaction
+COMMIT;
+
+-- Triggers
+-- After insert
+DELIMITER //
+
+CREATE TRIGGER after_order_insert
+AFTER INSERT ON Orders
+FOR EACH ROW
+BEGIN
+    INSERT INTO OrderItems (order_id, product_id, quantity, price)
+    VALUES (NEW.order_id, 1, 1, 100.00);
+END //
+
+DELIMITER ;
+
+-- After update
+DELIMITER //
+
+CREATE TRIGGER after_product_update
+AFTER UPDATE ON Products
+FOR EACH ROW
+BEGIN
+    IF NEW.stock < OLD.stock THEN
+        INSERT INTO Reviews (user_id, product_id, rating, comment)
+        VALUES (1, NEW.product_id, 5, 'Stock updated. Previous stock was ' || OLD.stock || ' now it is ' || NEW.stock);
+    END IF;
+END //
+
+DELIMITER ;
+
+-- After Delete
+DELIMITER //
+
+CREATE PROCEDURE CalculateTotalPrice()
+BEGIN
+    DECLARE total_price DECIMAL(10, 2);
+    SELECT SUM(price) INTO total_price
+    FROM Products
+    WHERE name LIKE 'Laptop%';
+    SELECT CONCAT('Total price of all Laptops: ', total_price) AS result;
+END //
+
+DELIMITER ;
+
+-- Before Insert
+DELIMITER //
+
+CREATE TRIGGER before_order_insert
+BEFORE INSERT ON Orders
+FOR EACH ROW
+BEGIN
+    SET NEW.order_date = NOW();
+END //
+
+DELIMITER ;
+
+-- Before Update
+DELIMITER //
+
+CREATE TRIGGER before_product_update
+BEFORE UPDATE ON Products
+FOR EACH ROW
+BEGIN
+    IF NEW.price < 0 THEN
+        SET NEW.price = 0;
+    END IF;
+END //
+
+DELIMITER ;
+
+-- Before Delete
+DELIMITER //
+CREATE TRIGGER before_orderitem_delete
+BEFORE DELETE ON OrderItems
+FOR EACH ROW
+BEGIN
+    INSERT INTO Reviews (user_id, product_id, rating, comment)
+    VALUES (1, OLD.product_id, 5, CONCAT('About to delete order item with order_item_id ', OLD.order_item_id));
+END //
+DELIMITER ;
+
+
+-- Advanced Triggers
+DELIMITER //
+
+CREATE TRIGGER after_orderitem_insert
+AFTER INSERT ON OrderItems
+FOR EACH ROW
+BEGIN
+    UPDATE Products
+    SET stock = stock - NEW.quantity
+    WHERE product_id = NEW.product_id;
+END //
+
+DELIMITER ;
+
+-- View
+CREATE VIEW UserOrderSummary AS
+SELECT u.username, o.order_id, o.order_date, o.status, SUM(oi.quantity * oi.price) AS total_amount
+FROM Users u
+JOIN Orders o ON u.user_id = o.user_id
+JOIN OrderItems oi ON o.order_id = oi.order_id
+GROUP BY u.username, o.order_id, o.order_date, o.status;
+SELECT * FROM UserOrderSummary;
+/*
+john_doe	1	2024-06-25 06:20:22	Pending	3000.00
+john_doe	6	2024-06-25 07:20:59	Pending	100.00
+jane_smith	2	2024-06-25 06:20:22	Completed	6400.00
+jane_smith	7	2024-06-25 07:20:59	Completed	100.00
+mike_jones	3	2024-06-25 06:20:22	Pending	3600.00
+mike_jones	8	2024-06-25 07:20:59	Pending	100.00
+susan_lee	4	2024-06-25 06:20:22	Completed	2400.00
+susan_lee	9	2024-06-25 07:20:59	Completed	100.00
+linda_clark	5	2024-06-25 06:20:22	Pending	3000.00
+linda_clark	10	2024-06-25 07:20:59	Pending	100.00
+*/
