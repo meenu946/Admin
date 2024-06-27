@@ -604,7 +604,7 @@ import numpy as np
 
 def diagonal_sum(h, i, j):
     
-    assert len(i) == len(j), 
+    assert len(i) == len(j), "Length of i and j must be the same"
 
     m = len(i)
     n = len(j)
