@@ -1,0 +1,50 @@
+{
+	"info": {
+		"_postman_id": "b92f4eb7-08df-49c6-9e7e-17b22974ef2e",
+		"name": "New Collection",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "36180380",
+		"_collection_link": "https://www.postman.com/meenu946/workspace/incident-log-api/collection/36180380-b92f4eb7-08df-49c6-9e7e-17b22974ef2e?action=share&source=collection_link&creator=36180380"
+	},
+	"item": [
+		{
+			"name": "New Request",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"title\": \"Bias in hiring algorithm\",\r\n  \"description\": \"Discrimination against minorities\",\r\n  \"severity\": \"High\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:5000/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "5000",
+					"path": [
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "New Request",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		}
+	]
+}
